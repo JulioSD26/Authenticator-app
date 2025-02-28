@@ -1,7 +1,5 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import app from "./firebaseConfig.js";
-
-const auth = getAuth(app);
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import {auth} from "./firebaseConfig.js";
 
 export const register = (email, password) => {
   return createUserWithEmailAndPassword(auth, email, password);
