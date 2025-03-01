@@ -44,6 +44,7 @@ Inicia la aplicación:
 ## Capturas de pantalla 🖼️
 
 1. Página de Login
+   
 ![image](https://github.com/user-attachments/assets/c2ab551c-62f9-4dd5-8cef-dff489c538bf)
 
 
