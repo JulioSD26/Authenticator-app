@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+// Firebase
 import { auth } from "../../firebaseConfig";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+// Toastify
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,12 +25,27 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const loginPromise = signInWithEmailAndPassword(auth, email, password);
+
+    toast.promise(loginPromise, {
+      pending: 'Logging in...',
+      success: 'Welcome back! 🎉',
+      error: {
+        render({ data }) {
+          const error = data.code;
+          if (error === 'auth/invalid-email') return 'Invalid email address.';
+          if (error === 'auth/too-many-requests') return 'Access to this account has been temporarily disabled due to many failed login attempts.';
+          if (error === 'auth/invalid-credential') return 'Invalid credentials. Please try again.';
+          return 'Failed to log in. Please try again.';
+        }
+      }
+    });
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful");
+      await loginPromise;
       navigate("/home", { state: { email } });
     } catch (error) {
-      alert(error.message);
+      console.error(error);
     }
   };
 
@@ -68,6 +87,7 @@ const Login = () => {
           </button>
         </p>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} />
     </div>
   );
 };

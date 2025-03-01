@@ -1,31 +1,58 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+// Firebase
 import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
+// Toastify
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false); // Control de registro
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        navigate("/home"); // Si ya está logueado, redirige al home
+      if (user && !isRegistering) { // Solo redirige si no estamos en proceso de registro
+        navigate("/home");
       }
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, isRegistering]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setIsRegistering(true); // Iniciamos el proceso de registro
+    const registerPromise = createUserWithEmailAndPassword(auth, email, password);
+
+    toast.promise(registerPromise, {
+      pending: 'Creating your account...',
+      success: 'Registration successful! 🎉',
+      error: {
+        render({ data }) {
+          const error = data.code;
+          if (error === 'auth/invalid-email') return 'Invalid email address.';
+          if (error === 'auth/weak-password') return 'Weak password. Must be at least 6 characters.';
+          if (error === 'auth/email-already-in-use') return 'This email is already in use.';
+          if (error === 'auth/missing-password') return 'Please enter a password.';
+          if (error === 'auth/missing-email') return 'Please enter an email address.';
+          return 'Something went wrong. Please try again.';
+        }
+      }
+    });
+
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("Registration successful");
-      navigate("/home");
+      await registerPromise;
+      setTimeout(() => {
+        setIsRegistering(false); // Terminamos el proceso de registro
+        navigate('/home');
+      }, 2000); // Espera 1 segundo antes de redirigir para mostrar el mensaje de éxito
     } catch (error) {
-      alert(error.message);
+      setIsRegistering(false); // Terminamos el proceso en caso de error
+      console.error(error);
     }
   };
 
@@ -67,6 +94,7 @@ const Register = () => {
           </button>
         </p>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} />
     </div>
   );
 };
