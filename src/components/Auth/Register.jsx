@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 
 const Register = () => {
@@ -8,12 +8,22 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate("/home"); // Si ya está logueado, redirige al home
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("Registration successful");
-      navigate("/login");
+      navigate("/home");
     } catch (error) {
       alert(error.message);
     }

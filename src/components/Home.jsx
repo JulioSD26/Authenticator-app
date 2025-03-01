@@ -1,12 +1,26 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth} from "../firebaseConfig";
 
 const Home = () => {
-  const location = useLocation();
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
-  const email = location.state?.email;
 
+  // Verificar si el usuario ya está autenticado
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setEmail(user.email);
+      } else {
+        navigate("/login");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Cerrar sesión
   const handleLogout = async () => {
     try {
       await signOut(auth);
